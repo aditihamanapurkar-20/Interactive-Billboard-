@@ -4,17 +4,20 @@ import {
     Volume2, VolumeX, ArrowRight
 } from 'lucide-react';
 
+// Prefix with Vite base so assets work on GitHub Pages (/Interactive-Billboard-/)
+const asset = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`;
+
 const IMAGES = {
-    background: "/textures/background.svg",
-    chunalal: "/characters/chunalal.svg",
+    background: asset('textures/background.svg'),
+    chunalal: asset('characters/chunalal.svg'),
     textures: {
-        rcc: "/textures/rcc.svg",
-        stone: "/textures/stone.svg",
-        bricks: "/textures/bricks.svg",
-        concreteBlock: "/textures/concreteBlock.svg",
-        metal: "/textures/metal.svg",
-        clay: "/textures/clay.svg",
-        paper: "/textures/paper.svg"
+        rcc: asset('textures/rcc.svg'),
+        stone: asset('textures/stone.svg'),
+        bricks: asset('textures/bricks.svg'),
+        concreteBlock: asset('textures/concreteBlock.svg'),
+        metal: asset('textures/metal.svg'),
+        clay: asset('textures/clay.svg'),
+        paper: asset('textures/paper.svg')
     }
 };
 
