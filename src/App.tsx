@@ -206,29 +206,39 @@ type MaterialOption = {
     bagType?: string;
 };
 
-/** Prefer an Indian Hindi (hi-IN) voice for natural Devanagari speech. */
-function pickIndianHindiVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | undefined {
+/** Prefer a male Indian Hindi voice so Chunalal does not sound female. */
+function pickChunalalVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | undefined {
     const hindi = voices.filter((v) => {
         const lang = (v.lang || '').toLowerCase();
         return lang === 'hi-in' || lang.startsWith('hi-') || lang === 'hi';
     });
     if (!hindi.length) return undefined;
 
+    const maleName = /hemant|ravi|madhur|\bmale\b|पुरुष|man\b/;
+    const femaleName = /lekha|kalpana|neerja|swara|heera|priya|\bfemale\b|\bwoman\b|स्त्री|महिला/;
+
     const score = (v: SpeechSynthesisVoice) => {
         const name = (v.name || '').toLowerCase();
         const lang = (v.lang || '').toLowerCase();
         let s = 0;
-        if (lang === 'hi-in') s += 50;
-        if (/india|indian|हिंदी|हिन्दी/.test(name)) s += 40;
-        // Common Indian Hindi voices on Chrome / Edge / macOS / Android
-        if (/google हिन्दी|google hindi|lekha|hemant|kalpana|ravi|neerja|swara|madhur/.test(name)) s += 30;
+        if (lang === 'hi-in') s += 40;
+        if (/india|indian|हिंदी|हिन्दी/.test(name)) s += 25;
+        if (/google हिन्दी|google hindi/.test(name)) s += 15;
+        // Strongly prefer known male Hindi voices
+        if (maleName.test(name)) s += 100;
+        // Strongly avoid female Hindi voices (macOS Lekha is a common default)
+        if (femaleName.test(name)) s -= 120;
         if (v.localService) s += 5;
-        // Deprioritize non-India regional tags if present
         if (/pakistan|pk\b|bangladesh|bd\b/.test(name + ' ' + lang)) s -= 40;
         return s;
     };
 
     return [...hindi].sort((a, b) => score(b) - score(a))[0];
+}
+
+function isLikelyFemaleVoice(voice: SpeechSynthesisVoice | null): boolean {
+    if (!voice) return true;
+    return /lekha|kalpana|neerja|swara|heera|priya|\bfemale\b|\bwoman\b|स्त्री|महिला/i.test(voice.name || '');
 }
 
 function OptionCard({
@@ -298,7 +308,7 @@ export default function App() {
 
     const refreshIndianVoice = () => {
         if (!synthRef.current) return;
-        const chosen = pickIndianHindiVoice(synthRef.current.getVoices());
+        const chosen = pickChunalalVoice(synthRef.current.getVoices());
         if (chosen) hindiVoiceRef.current = chosen;
     };
 
@@ -310,8 +320,10 @@ export default function App() {
 
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'hi-IN';
-        utterance.rate = 0.92;
-        utterance.pitch = 1;
+        // Slightly slower, warmer delivery for a middle-aged farmer
+        utterance.rate = 0.88;
+        // If the OS only has a female Hindi voice (e.g. macOS Lekha), drop pitch to sound more male
+        utterance.pitch = isLikelyFemaleVoice(hindiVoiceRef.current) ? 0.7 : 0.9;
         if (hindiVoiceRef.current) {
             utterance.voice = hindiVoiceRef.current;
             utterance.lang = hindiVoiceRef.current.lang || 'hi-IN';
