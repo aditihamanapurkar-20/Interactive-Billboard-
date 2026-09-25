@@ -9,7 +9,7 @@ const asset = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//
 
 const IMAGES = {
     background: asset('textures/background.svg'),
-    chunalal: asset('characters/chunalal.svg'),
+    chunalal: asset('characters/chunalal.png'),
     textures: {
         rcc: asset('textures/rcc.svg'),
         stone: asset('textures/stone.svg'),
